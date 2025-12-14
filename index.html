@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minha Lista de Natal Mágica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Configurações Globais --- */
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 60%),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            color: #f8fafc;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent; /* Remove highlight azul nativo do mobile */
+        }
+
+        .font-christmas {
+            font-family: 'Mountains of Christmas', cursive;
+        }
+
+        /* --- Luzes de Natal (Responsivo) --- */
+        .christmas-lights {
+            position: absolute;
+            top: -15px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            z-index: 1;
+            padding: 0;
+            pointer-events: none;
+            height: 50px;
+        }
+
+        .christmas-lights li {
+            position: relative;
+            display: inline-block;
+            list-style: none;
+            margin: 0 10px; /* Reduzi margem para caber mais em mobile */
+            padding: 0;
+            width: 12px;    /* Lâmpadas ligeiramente menores */
+            height: 24px;
+            border-radius: 50%;
+            top: 20px;
+            background: #f0f0f0;
+            animation-duration: 2s;
+            animation-iteration-count: infinite;
+            animation-fill-mode: both;
+        }
+
+        @media (min-width: 768px) {
+            .christmas-lights li {
+                margin: 0 15px;
+                width: 15px;
+                height: 30px;
+            }
+        }
+
+        .christmas-lights li:before {
+            content: "";
+            position: absolute;
+            background: #222;
+            width: 8px; /* Ajuste proporcional */
+            height: 8px;
+            border-radius: 4px;
+            top: -2px;
+            left: 2px;
+        }
+
+        .christmas-lights li:after { /* O Fio */
+            content: "";
+            top: -10px;
+            left: 6px;
+            position: absolute;
+            width: 35px; /* Ajuste fio */
+            height: 18px;
+            border-bottom: solid #222 2px;
+            border-radius: 50%;
+            transform: translateX(-50%);
+        }
+
+        .christmas-lights li:nth-child(odd) { animation-name: flash-1; }
+        .christmas-lights li:nth-child(2n) { animation-name: flash-2; }
+        .christmas-lights li:nth-child(3n) { animation-name: flash-3; }
+
+        @keyframes flash-1 { 0%, 100% { background: #ff005d; box-shadow: 0px 5px 24px 3px #ff005d; } 50% { background: #ba0044; box-shadow: 0px 2px 12px 0px #ba0044; } }
+        @keyframes flash-2 { 0%, 100% { background: #00ff8e; box-shadow: 0px 5px 24px 3px #00ff8e; } 50% { background: #00ba67; box-shadow: 0px 2px 12px 0px #00ba67; } }
+        @keyframes flash-3 { 0%, 100% { background: #00eaff; box-shadow: 0px 5px 24px 3px #00eaff; } 50% { background: #0093ba; box-shadow: 0px 2px 12px 0px #0093ba; } }
+
+        /* --- Neve Suave --- */
+        .snowflake {
+            position: fixed;
+            top: -20px;
+            color: white;
+            z-index: 0;
+            pointer-events: none;
+            animation: fall linear infinite;
+            will-change: transform; /* Otimização para mobile */
+        }
+        @keyframes fall {
+            to { transform: translateY(105vh) rotate(360deg); }
+        }
+
+        /* --- Efeito Glassmorphism --- */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- Estilos do Cartão 3D --- */
+        .gift-container {
+            perspective: 1200px;
+            height: 320px;
+            cursor: pointer;
+            /* Remove blue highlight on tap */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Feedback tátil ao pressionar no mobile */
+        .gift-container:active .gift-inner {
+            transform: scale(0.98);
+        }
+
+        .gift-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .gift-container.opened .gift-inner {
+            transform: rotateY(180deg);
+        }
+        
+        /* Ajuste do opened para não ter scale effect */
+        .gift-container.opened:active .gift-inner {
+            transform: rotateY(180deg) scale(0.98);
+        }
+
+        .gift-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        /* Padrões de Embrulho */
+        .gift-front {
+            background-color: #ef4444;
+        }
+
+        .pattern-stripes {
+            background: repeating-linear-gradient(45deg, #b91c1c, #b91c1c 15px, #dc2626 15px, #dc2626 30px);
+        }
+        .pattern-polka {
+            background-color: #15803d;
+            background-image: radial-gradient(#166534 20%, transparent 20%), radial-gradient(#166534 20%, transparent 20%);
+            background-position: 0 0, 15px 15px;
+            background-size: 30px 30px;
+        }
+        .pattern-stars {
+            background-color: #1e3a8a;
+            background-image: radial-gradient(#60a5fa 1px, transparent 1px), radial-gradient(#60a5fa 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: 0 0, 25px 25px;
+        }
+
+        /* Laço 3D */
+        .ribbon-v { position: absolute; width: 18%; height: 100%; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); box-shadow: 0 0 10px rgba(0,0,0,0.1); border-left: 1px solid rgba(255,255,255,0.3); border-right: 1px solid rgba(255,255,255,0.3); }
+        .ribbon-h { position: absolute; width: 100%; height: 18%; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); box-shadow: 0 0 10px rgba(0,0,0,0.1); border-top: 1px solid rgba(255,255,255,0.3); border-bottom: 1px solid rgba(255,255,255,0.3); }
+        .bow {
+            position: absolute;
+            width: 60px; height: 60px;
+            background: radial-gradient(circle, #fbbf24 0%, #d97706 100%);
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        .gift-back {
+            background: #fff;
+            color: #1e293b;
+            transform: rotateY(180deg);
+            padding: 0;
+        }
+        
+        .polaroid-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .gift-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 0.8rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            background-color: #f1f5f9;
+        }
+
+        /* Estilo da Tag de Preço/Número */
+        .gift-tag {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #fff;
+            color: #b91c1c;
+            padding: 0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Mountains of Christmas';
+            font-weight: bold;
+            font-size: 1.4rem;
+            transform: rotate(-15deg);
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            z-index: 20;
+            border: 2px solid #b91c1c;
+        }
+
+        /* Animação suave no Hover (apenas desktop) */
+        @media (hover: hover) {
+            .gift-container:hover .gift-inner {
+                transform: translateY(-5px);
+            }
+            .gift-container.opened:hover .gift-inner {
+                transform: translateY(-5px) rotateY(180deg);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center">
+
+    <!-- Luzes de Natal -->
+    <ul class="christmas-lights">
+        <!-- Mais luzes para preencher telas largas, overflow hidden cuida do resto -->
+        <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+        <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+        <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+        <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
+    </ul>
+
+    <!-- Cabeçalho -->
+    <header class="text-center pt-20 pb-8 md:pt-24 md:pb-10 relative z-10 px-4 w-full max-w-4xl mx-auto">
+        <div class="glass-panel rounded-3xl p-6 md:p-8 mb-4 inline-block shadow-2xl relative w-full md:w-auto">
+            
+            <!-- Gorro Atualizado - Responsivo -->
+            <img src="https://static.vecteezy.com/system/resources/thumbnails/032/545/954/small/christmas-santa-claus-red-and-white-hat-isolated-on-transparent-background-png.png" 
+                 class="absolute -top-10 -left-2 w-24 md:-top-16 md:-left-8 md:w-32 transform -rotate-12 drop-shadow-xl z-20 pointer-events-none" 
+                 alt="Gorro">
+            
+            <h1 class="text-4xl sm:text-5xl md:text-7xl font-christmas text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-200 drop-shadow-sm mb-2 mt-2 leading-tight">
+                Lista de Desejos
+            </h1>
+            <div class="h-1 w-24 mx-auto bg-gradient-to-r from-transparent via-red-500 to-transparent mb-4 rounded-full"></div>
+            <p class="text-base md:text-xl text-blue-100 font-medium tracking-wide">
+                Toque nos presentes para ver o que tem dentro! 📸🎁
+            </p>
+        </div>
+    </header>
+
+    <!-- Grid de Presentes -->
+    <main class="w-full max-w-5xl px-4 md:px-6 pb-20 relative z-10">
+        <!-- Gap ajustado para mobile (gap-6) e desktop (gap-8) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 justify-items-center" id="gift-grid">
+            <!-- JS vai preencher aqui -->
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="w-full text-center py-6 mt-auto relative z-10 text-slate-400 glass-panel border-t border-slate-700">
+        <div class="flex justify-center items-center gap-2 text-sm md:text-base">
+            <span>Feito com</span>
+            <i data-lucide="heart" class="w-4 h-4 text-red-500 fill-current animate-pulse"></i>
+            <span>para o Natal</span>
+        </div>
+    </footer>
+
+    <!-- Container da Neve -->
+    <div id="snow-container"></div>
+
+    <script>
+        lucide.createIcons();
+
+        // Lista de presentes
+        const giftIdeas = [
+            { 
+                id: 1, 
+                title: "Livros", 
+                description: "Histórias envolventes, capa dura e aquele cheirinho de livro novo.", 
+                image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=500&q=80", 
+                pattern: "pattern-stripes" 
+            },
+            { 
+                id: 2, 
+                title: "Gloss Labial", 
+                description: "Para lábios brilhantes e hidratados. Tons nude ou rosa.", 
+                image: "https://m.media-amazon.com/images/I/71uTSgZMp0L._AC_SX679_.jpg", 
+                pattern: "pattern-polka" 
+            },
+            { 
+                id: 3, 
+                title: "Perfume Zara", 
+                description: "Fragrância marcante e elegante para o dia a dia.", 
+                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRNwaPJdSb7gYmLU0aU8dLVBxTfxpa56D4jA&s", 
+                pattern: "pattern-stars" 
+            },
+            { 
+                id: 4, 
+                title: "Pijamas", 
+                description: "Conjunto confortável e fofinho para dormir nas nuvens.", 
+                image: "https://hopelingerie.vtexassets.com/arquivos/ids/257785-1200-auto?width=1200&height=auto&aspect=true", 
+                pattern: "pattern-stripes" 
+            },
+            { 
+                id: 5, 
+                title: "Maquiagem", 
+                description: "Paletas e itens essenciais para realçar a beleza.", 
+                image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=500&q=80", 
+                pattern: "pattern-polka" 
+            }
+        ];
+
+        const grid = document.getElementById('gift-grid');
+
+        giftIdeas.forEach(gift => {
+            const card = document.createElement('div');
+            // w-full garante que use a largura do grid, max-w-sm impede que fique gigante em tablets
+            card.className = gift-container group w-full max-w-xs sm:max-w-sm;
+            
+            card.innerHTML = `
+                <div class="gift-inner">
+                    <!-- FRENTE (EMBRULHO) -->
+                    <div class="gift-face gift-front ${gift.pattern} border-4 border-white/20">
+                        <div class="ribbon-v"></div>
+                        <div class="ribbon-h"></div>
+                        <div class="bow">
+                            <i data-lucide="gift" class="text-white w-8 h-8 drop-shadow-md"></i>
+                        </div>
+                        
+                        <!-- Tag Numérica -->
+                        <div class="gift-tag">
+                           ${String(gift.id).padStart(2, '0')}
+                        </div>
+                        
+                        <div class="absolute bottom-6 w-full text-center">
+                            <!-- Indicador visual (pulse) constante no mobile para indicar interatividade -->
+                            <div class="md:hidden animate-pulse">
+                                <i data-lucide="pointer" class="text-white/80 w-6 h-6 mx-auto mb-1"></i>
+                                <span class="text-xs font-bold text-white uppercase tracking-widest opacity-90">Toque</span>
+                            </div>
+
+                            <!-- Texto hover apenas para desktop -->
+                            <span class="hidden md:inline-block px-3 py-1 bg-black/30 backdrop-blur-sm rounded-full text-xs font-bold text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                Clique para ver
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- VERSO (CONTEÚDO COM FOTO) -->
+                    <div class="gift-face gift-back border-4 border-slate-200">
+                        <div class="polaroid-container">
+                            <div class="relative w-full h-[180px] mb-3 overflow-hidden rounded-lg bg-f1f5f9">
+                                <img src="${gift.image}" alt="${gift.title}" class="w-full h-full object-cover">
+                            </div>
+                            
+                            <h3 class="font-christmas text-2xl md:text-3xl mb-1 text-slate-800 leading-none">
+                                ${gift.title}
+                            </h3>
+                            
+                            <p class="font-medium text-slate-500 text-xs md:text-sm leading-tight mt-auto pb-2 px-1">
+                                ${gift.description}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Adiciona suporte a clique e touch
+            card.addEventListener('click', () => {
+                toggleGift(card);
+            });
+            
+            grid.appendChild(card);
+        });
+
+        lucide.createIcons();
+
+        function toggleGift(element) {
+            if (!element.classList.contains('opened')) {
+                 element.classList.add('opened');
+                 createConfetti(element);
+            } else {
+                 element.classList.remove('opened');
+            }
+        }
+
+        function createConfetti(element) {
+            const rect = element.getBoundingClientRect();
+            const colors = ['#fca5a5', '#86efac', '#fcd34d', '#ffffff'];
+            
+            // Reduzi quantidade de confetes para performance mobile
+            for(let i=0; i<30; i++) {
+                const confetti = document.createElement('div');
+                const size = Math.random() * 6 + 4;
+                
+                confetti.style.cssText = `
+                    position: fixed;
+                    left: ${rect.left + rect.width/2}px;
+                    top: ${rect.top + rect.height/2}px;
+                    width: ${size}px;
+                    height: ${size}px;
+                    background-color: ${colors[Math.floor(Math.random() * colors.length)]};
+                    z-index: 100;
+                    border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+                    pointer-events: none;
+                `;
+                
+                document.body.appendChild(confetti);
+
+                const angle = Math.random() * Math.PI * 2;
+                const tx = Math.cos(angle) * (100 + Math.random() * 80);
+                const ty = Math.sin(angle) * (100 + Math.random() * 80);
+                const rotate = Math.random() * 720;
+
+                const animation = confetti.animate([
+                    { transform: 'translate(0,0) rotate(0deg) scale(1)', opacity: 1 },
+                    { transform: translate(${tx}px, ${ty}px) rotate(${rotate}deg) scale(0), opacity: 0 }
+                ], {
+                    duration: 800 + Math.random() * 500,
+                    easing: 'cubic-bezier(0, .9, .57, 1)',
+                    fill: 'forwards'
+                });
+
+                animation.onfinish = () => confetti.remove();
+            }
+        }
+
+        // Sistema de Neve Otimizado
+        function createSnowflakes() {
+            const container = document.getElementById('snow-container');
+            // Menos neve em telas pequenas
+            const count = window.innerWidth < 768 ? 20 : 40;
+
+            for (let i = 0; i < count; i++) {
+                const flake = document.createElement('div');
+                flake.className = 'snowflake';
+                flake.textContent = Math.random() > 0.5 ? '❅' : '•';
+                
+                const size = Math.random() * 1.5 + 0.5 + 'em';
+                const left = Math.random() * 100 + 'vw';
+                const duration = Math.random() * 10 + 10 + 's';
+                const delay = Math.random() * -20 + 's';
+                const opacity = Math.random() * 0.5 + 0.1;
+
+                flake.style.fontSize = size;
+                flake.style.left = left;
+                flake.style.animationDuration = duration;
+                flake.style.animationDelay = delay;
+                flake.style.opacity = opacity;
+
+                container.appendChild(flake);
+            }
+        }
+
+        createSnowflakes();
+    </script>
+</body>
+</html>
